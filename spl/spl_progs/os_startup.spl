@@ -5,7 +5,11 @@ load(23,17); load(24,18); 	//Load int7 to memory
 
 load(25,21);		// Load 1st page of code from disk to memory
 load(26,22);		// Load 2nd page of code from disk to memory
-load(27,23);		// Load 3rd page of code from disk to memory	**Who sets the MemFree List?**
+load(27,23);		// Load 3rd page of code from disk to memory
+
+// Load Interrupt 1 Routine from disk to memory 
+load (11, 5);
+load (12, 6);
 
 PTBR = 1024;		// 1024 + PID * 8 
 PTLR = 4;		// 3 code pages + 1 stack
