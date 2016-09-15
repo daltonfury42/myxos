@@ -1,0 +1,61 @@
+alias currentPID S0;
+currentPID = (PTBR - 1024)/8;
+alias currentPCB S1;
+currentPCB = READY_LIST + 32 * currentPID;
+[ currentPCB + 1 ] = 1; // Set STATE to READY
+[ currentPCB + 2 ] = BP;
+[ currentPCB + 3 ] = SP - 1;
+alias physicalSP S2;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+[ currentPCB + 4 ] = [ physicalSP ]; // Save IP of current process in the PCB from the stack
+[ currentPCB + 5 ] = PTBR;
+[ currentPCB + 6 ] = PTLR;
+
+[ currentPCB + 7 ] = R0;
+[ currentPCB + 8 ] = R1;
+[ currentPCB + 9 ] = R2;
+[ currentPCB + 10] = R3;
+[ currentPCB + 11] = R4;
+[ currentPCB + 12] = R5;
+[ currentPCB + 13] = R6;
+[ currentPCB + 14] = R7;
+
+alias PCBi S2;
+PCBi = currentPCB + 32;
+while (1==1) do
+	breakpoint;
+	if(PCBi > READY_LIST + 	32*31) then
+		PCBi = READY_LIST;
+	endif;
+	if (PCBi == currentPCB) then
+		break;
+	endif;
+	if ([PCBi + 1] == 1) then
+		break;
+	endif;
+	PCBi = PCBi + 32;
+endwhile;
+
+R0 = [PCBi + 7];
+R1 = [PCBi + 8];
+R2 = [PCBi + 9];
+R3 = [PCBi + 10];
+R4 = [PCBi + 11];
+R5 = [PCBi + 12];
+R6 = [PCBi + 13];
+R7 = [PCBi + 14];
+
+BP = [PCBi + 2];
+SP = [PCBi + 3];
+PTBR = [PCBi + 5];
+PTLR = [PCBi + 6];
+
+SP = SP + 1; 
+alias newphysicalSP S3; 
+newphysicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
+[ newphysicalSP ] = [ PCBi + 4 ]; // Stores IP field value of PCB on the stack 
+
+[PCBi + 1] = 2; //Running
+
+ireturn;
+
