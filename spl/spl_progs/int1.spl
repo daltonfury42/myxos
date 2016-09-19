@@ -1,0 +1,65 @@
+alias physicalSP S0;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Get system call no. from the stack and put it in a register
+alias sysCallNo S1;
+
+sysCallNo = [physicalSP - 1];
+
+// Get arguments from stack and put it in registers
+
+if ( sysCallNo == 1) then
+// Implementation of Create 
+	alias fileName S2;
+	fileName = [physicalSP - 3];
+	alias i S3;
+	i = 0;
+	while (i < 512) do
+		if ([FAT + i] == fileName) then
+			[physicalSP - 2] = 0;
+		endif;
+		i = i + 8;
+	endwhile;
+	alias Bi S4;
+	Bi = 0;
+	while(Bi<448) do
+		if ([512*6 + Bi] == 0) then
+			break;
+		endif;
+		Bi = Bi + 1;
+	endwhile;
+	if (Bi==448) then 
+		[physicalSP - 2] = -1; 
+		ireturn;
+	endif;
+	i = 0;
+	while (i < 512) do
+		if([FAT + i + 2] == -1) then
+			[FAT + i] = fileName;
+			[FAT + i + 1] = 0;
+			[FAT + i + 2] = Bi;
+			break;
+		endif;
+		i = i + 8;
+	endwhile;
+	if (i==512) then 
+		[physicalSP - 2] = -1; 
+		ireturn;
+	endif;
+	load(1,Bi);
+	i = 0;
+	while(i<512) do
+		[512 + i] = -1;
+		i = i + 1;
+	endwhile;
+	store(1,Bi);
+	store(5, 19);
+	store(6, 20);
+	[physicalSP - 2] = 0; 
+	ireturn;
+
+endif;
+if ( sysCallNo == 4) then
+	// Implementation of Delete
+	ireturn;
+endif;
