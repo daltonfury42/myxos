@@ -17,6 +17,7 @@ if ( sysCallNo == 1) then
 	while (i < 512) do
 		if ([FAT + i] == fileName) then
 			[physicalSP - 2] = 0;
+			ireturn;
 		endif;
 		i = i + 8;
 	endwhile;
@@ -24,6 +25,7 @@ if ( sysCallNo == 1) then
 	Bi = 0;
 	while(Bi<448) do
 		if ([512*6 + Bi] == 0) then
+			[512*6 + Bi] = 1;
 			break;
 		endif;
 		Bi = Bi + 1;
