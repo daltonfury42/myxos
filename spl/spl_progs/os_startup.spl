@@ -29,15 +29,20 @@ PTLR = 4;		// 3 code pages + 1 stack
 [PTBR + 6] = 28;
 [PTBR + 7] = "01";
 
-[READY_LIST + 1] = 2;	// State = Ready
+[READY_LIST + 1] = 1;	// State = Ready
+[READY_LIST + 2] = 3*512;	// State = Ready
+[READY_LIST + 3] = 3*512;	// State = Ready
+[READY_LIST + 4] = 0;	// State = Ready
+[READY_LIST + 5] = 1024;	// State = Ready
+[READY_LIST + 6] = 4;	// State = Ready
 
 SP = 3 * 512;		// Set stack pointer.
 
-[28 * 512] = 0; 	// This is the location where call will look for IP, set logical addr 0
+//[28 * 512] = 0; 	// This is the location where call will look for IP, set logical addr 0
 
 //* loading of second program */
 [READY_LIST + 32] = 1; //* Set PID of second process to 1 */
-[READY_LIST + 33] = 1; //* State is ready */
+[READY_LIST + 33] = 2; //* State is ready */
 [READY_LIST + 34] = 3 * 512; //SP
 [READY_LIST + 35] = 3 * 512; //BP
 [READY_LIST + 36] = 0; //IP
@@ -59,5 +64,31 @@ PTBR_P2 = 1024 + 1*8;
 [PTBR_P2 + 5] = "00";
 [PTBR_P2 + 6] = 30; 
 [PTBR_P2 + 7] = "01";
-
+[30*512] = 0;
+PTBR = PTBR_P2;
 ireturn;
+//* loading of third program */
+[READY_LIST + 64] = 2; //* Set PID of second process to 1 */
+[READY_LIST + 65] = 1; //* State is ready */
+[READY_LIST + 66] = 3 * 512; //SP
+[READY_LIST + 67] = 3 * 512; //BP
+[READY_LIST + 68] = 0; //IP
+[READY_LIST + 69] = 1024 + 8*2; //ptbr
+[READY_LIST + 70] = 4;
+
+
+load(31,29);
+
+//Setting up the page table
+alias PTBR_P3 S7;
+PTBR_P3 = 1024 + 2*8;
+
+[PTBR_P3 + 0] = 31;
+[PTBR_P3 + 1] = "01";
+[PTBR_P3 + 2] = -1;
+[PTBR_P3 + 3] = "00";
+[PTBR_P3 + 4] = -1;
+[PTBR_P3 + 5] = "00";
+[PTBR_P3 + 6] = 34;
+[PTBR_P3 + 7] = "01";
+ 
