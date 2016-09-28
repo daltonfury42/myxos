@@ -13,11 +13,52 @@ if ( sysCallNo == 5) then
 	alias fileDescriptor S2;
 	fileDescriptor = [physicalSP - 4];
 	alias wordToWrite S3;
-	wordToWrite = [physicalSP - 3]
+	wordToWrite = [physicalSP - 3];
 	if (fileDescriptor < 0 || fileDescriptor > 7) then
+		print("Invalid FD");
 		[physicalSP -2] = -1;
 		ireturn;
 	endif;
 	alias PCB S4;
 	PCB = (PTBR - 1024)/8;
-	
+	alias sysWideFOTi S5;
+	alias LSEEKPos S6;
+	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
+	if(sysWideFOTi == -1) then 
+		[physicalSP - 2] = -1;
+		ireturn;
+	endif;
+	LSEEKPos = [PCB + 15 + fileDescriptor*2 + 1];
+	alias FATi S7;
+	FATi = [1344 + sysWideFOTi*2];
+	alias BB S8;
+	BB = [5*512 + FATi*8 + 2];
+	load(1,BB);
+	alias DB S9;
+	DB = [1*512 + LSEEKPos/512];
+	if(DB == -1) then
+		
+		DB = 0;
+		while(DB < 448) do
+			if([6*512 + DB] == 0) then
+				[6*512 + DB] = 1;
+				[1*512 + LSEEKPos/512] = DB;
+				store(1,BB);
+				[5*512 + FATi*8 + 1] = [5*512 + FATi*8 + 1] + 1;
+				store(5,19);
+				store(6,20);
+				break;
+			endif;
+		endwhile;
+		if (DB >= 448) then
+			[physicalSP - 2] = -1;
+			ireturn;
+		endif;
+	endif;
+	load(1, DB);
+	[1*512 + LSEEKPos%512] = wordToWrite;
+	store(1, DB);
+	[PCB + 15 + fileDescriptor*2 + 1] = LSEEKPos + 1;
+	[physicalSP - 2] = 0;
+	ireturn;
+endif;

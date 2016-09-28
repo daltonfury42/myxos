@@ -80,9 +80,9 @@ if (sysCallNo == 3) then
 	endif;
 
 	alias PCB S3;
-	PCB = READY_LIST + (PTBR - 1024)/8;
+	PCB = READY_LIST + (PTBR - 1024)/8*32;
 	alias sysWideFOTindex S4;
-	sysWideFOTindex = [PCB + 15 + fileDiscriptor];
+	sysWideFOTindex = [PCB + 15 + fileDiscriptor*2];
 	if (sysWideFOTindex == -1) then
 		[physicalSP - 2] = -1;
 		ireturn;
@@ -93,7 +93,7 @@ if (sysCallNo == 3) then
 		[1344 + sysWideFOTindex*2] = -1;
 	endif;
 
-	[PCB + 15 + fileDiscriptor] = -1;
+	[PCB + 15 + fileDiscriptor*2] = -1;
 
 	[physicalSP - 2] = 0;
 	ireturn;

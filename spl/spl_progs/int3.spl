@@ -1,0 +1,83 @@
+alias physicalSP S0;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Get system call no. from the stack and put it in a register
+alias sysCallNo S1;
+
+sysCallNo = [physicalSP - 1];
+
+// Get arguments from stack and put it in registers
+
+if ( sysCallNo == 6) then
+// Implementation of Seek   
+	alias fileDescriptor S2;
+	fileDescriptor = [physicalSP - 4];
+	alias newSeek S3;
+	newSeek = [physicalSP - 3];
+	if (fileDescriptor < 0 || fileDescriptor > 7) then
+		print("Invalid FD");
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+	alias PCB S4;
+	PCB = (PTBR - 1024)/8;
+	alias sysWideFOTi S5;
+	alias LSEEKPos S6;
+	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
+	if(sysWideFOTi == -1) then 
+		[physicalSP - 2] = -1;
+		ireturn;
+	endif;
+	LSEEKPos = [PCB + 15 + fileDescriptor*2 + 1];
+	alias FATi S7;
+	FATi = [1344 + sysWideFOTi*2];
+	alias fileSize S8;
+	fileSize = [5*512 + FATi*8 + 1];
+	if (newSeek < 0 || newSeek > fileSize) then
+		[physicalSP - 2] = -1;
+		ireturn;
+	endif;
+
+	[PCB + 15 + fileDescriptor*2 + 1] = newSeek;
+	[physicalSP - 2] = 0;
+	ireturn;
+endif;
+
+
+if ( sysCallNo == 7) then
+// Implementation of Read   
+	alias fileDescriptor S2;
+	fileDescriptor = [physicalSP - 4];
+	if (fileDescriptor < 0 || fileDescriptor > 7) then
+		print("Invalid FD");
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+	alias PCB S4;
+	PCB = (PTBR - 1024)/8;
+	alias sysWideFOTi S5;
+	alias LSEEKPos S6;
+	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
+	if(sysWideFOTi == -1) then 
+		[physicalSP - 2] = -1;
+		ireturn;
+	endif;
+	LSEEKPos = [PCB + 15 + fileDescriptor*2 + 1];
+	alias FATi S7;
+	FATi = [1344 + sysWideFOTi*2];
+	alias fileSize S8;
+	fileSize = [5*512 + FATi*8 + 1];
+	alias BB S9;
+	BB = [5*512 + FATi*8 + 2];
+	if(LSEEKPos == fileSize) then
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+	load(1, BB);
+	alias DB S10;
+	DB = [512 + LSEEKPos/512];
+	load(1,DB);
+	[physicalSP - 3] = [512+ LSEEKPos%512];
+	[physicalSP - 2] = 0;
+	ireturn;
+endif;
