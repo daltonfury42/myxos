@@ -1,0 +1,23 @@
+alias physicalSP S0;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Get system call no. from the stack and put it in a register
+alias sysCallNo S1;
+
+sysCallNo = [physicalSP - 1];
+
+// Get arguments from stack and put it in registers
+
+if ( sysCallNo == 5) then
+// Implementation of Write  
+	alias fileDescriptor S2;
+	fileDescriptor = [physicalSP - 4];
+	alias wordToWrite S3;
+	wordToWrite = [physicalSP - 3]
+	if (fileDescriptor < 0 || fileDescriptor > 7) then
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+	alias PCB S4;
+	PCB = (PTBR - 1024)/8;
+	

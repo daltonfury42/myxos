@@ -63,5 +63,63 @@ if ( sysCallNo == 1) then
 endif;
 if ( sysCallNo == 4) then
 	// Implementation of Delete
+	alias fileName S2;
+	fileName = [physicalSP - 3];
+	alias fatIndex S3;
+	fatIndex = 0;
+	while (fatIndex*8 < 512) do
+		if ([FAT + fatIndex*8] == fileName) then
+			break;
+		endif;
+		fatIndex = fatIndex + 1;
+	endwhile;
+	if (fatIndex*8 >= 512) then
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+	alias sysFOTi S4;
+	sysFOTi = 0;
+	while (sysFOTi*2 + 1344 < 1471) do
+		if([sysFOTi*2 + 1344] == fatIndex) then
+			print("File already opened");
+			[physicalSP -2] = -1;
+			ireturn;
+		endif;
+		sysFOTi = sysFOTi + 1;
+	endwhile;
+	
+	alias BB S5;
+	BB = [FAT + fatIndex*8 + 2];
+	load(1,BB);
+	alias i S6;
+	i = 0;
+	alias j S7;
+	print ("BB = ");
+	print(BB);
+	while (i < 256) do
+		if([1*512 + i] != -1) then
+			load(1, [1*512 + i]);
+			j = 0;
+			while (j < 512) do
+				[1*512 + j] = "";
+				j = j + 1;
+			endwhile;
+			store(1, [1*512 + i]);
+			load(1, BB);
+			[6*512 + [1*512 + i]] = 0; 
+		endif;
+		i = i + 1;
+	endwhile;
+	j = 0;
+	while( j < 512) do
+		[1*512 + j] = "";
+		j = j + 1;
+	endwhile;
+	[6*512 + BB] = 0;
+	[5*512 + fatIndex*8] = -1;
+	[5*512 + fatIndex*8 + 2] = -1;
+	store(5,19);
+	store(6,20);
+	[physicalSP - 2] = 0;
 	ireturn;
 endif;
