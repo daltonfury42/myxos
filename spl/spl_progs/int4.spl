@@ -37,7 +37,6 @@ if ( sysCallNo == 5) then
 	alias DB S9;
 	DB = [1*512 + LSEEKPos/512];
 	if(DB == -1) then
-		
 		DB = 0;
 		while(DB < 448) do
 			if([6*512 + DB] == 0) then
@@ -49,6 +48,7 @@ if ( sysCallNo == 5) then
 				store(6,20);
 				break;
 			endif;
+			DB = DB + 1;
 		endwhile;
 		if (DB >= 448) then
 			[physicalSP - 2] = -1;
