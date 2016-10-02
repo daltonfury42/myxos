@@ -69,7 +69,7 @@ if ( sysCallNo == 7) then
 	fileSize = [5*512 + FATi*8 + 1];
 	alias BB S9;
 	BB = [5*512 + FATi*8 + 2];
-	if(LSEEKPos == fileSize) then
+	if(LSEEKPos > fileSize) then
 		[physicalSP -2] = -1;
 		ireturn;
 	endif;
@@ -78,6 +78,7 @@ if ( sysCallNo == 7) then
 	DB = [512 + LSEEKPos/512];
 	load(1,DB);
 	[physicalSP - 3] = [512+ LSEEKPos%512];
+	[PCB + 15 + fileDescriptor*2 + 1] = LSEEKPos + 1;
 	[physicalSP - 2] = 0;
 	ireturn;
 endif;
