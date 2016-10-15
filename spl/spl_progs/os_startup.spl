@@ -5,6 +5,7 @@ load(13,07); load(14,08); 	//Load int2 to memory
 load(15,09); load(16,10); 	//Load int3 to memory
 load(17,11); load(18,12); 	//Load int4 to memory
 load(19,13); load(20,14); 	//Load int5 to memory
+load(21,15); load(22,16); 	//Load int6 to memory
 load(23,17); load(24,18); 	//Load int7 to memory
 
 //Loading Init
@@ -62,5 +63,23 @@ while ( counter <  128) do// 64 entries, each of size 2 words
 	[ FILE_TABLE + counter + 1] =  0;// Set File Open Count to 0
 	counter = counter + 2;// Move to next entry
 endwhile;
-breakpoint;
+
+//Initilize mem-free-list
+counter = 0;
+while(counter < 64) do
+	if(counter <= 28) then
+		[1280 + counter] = 1;
+	endif;
+	if(counter > 28) then
+		[1280 + counter] = 0;
+	endif;
+	counter = counter + 1;
+endwhile;
+
+counter = 1;
+while(counter < 32) do
+	[READY_LIST + counter*32 + 1] = 0;
+	counter = counter + 1;
+endwhile;
+
 ireturn;

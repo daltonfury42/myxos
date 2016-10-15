@@ -1,0 +1,102 @@
+alias physicalSP S0;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+// Get system call no. from the stack and put it in a register
+alias sysCallNo S1;
+
+sysCallNo = [physicalSP - 1];
+
+// Get arguments from stack and put it in registers
+if ( sysCallNo == 9) then
+// Implementation of Exec   
+	alias fileName S2;
+	fileName = [physicalSP - 3];
+	alias FATi S3;
+	FATi = 0;
+	while(FATi < 512/8) do
+		if([FAT + FATi*8] == fileName) then
+			break;
+		endif;
+		FATi = FATi + 1;
+	endwhile;
+	
+	if (FATi == 512/8) then
+		[physicalSP - 2] = -1;
+		ireturn;
+	endif;
+
+	load(1, [FAT + FATi*8 + 2]); 	//Load BB to scratchpad
+
+	alias DBCount S4;
+	DBCount = 0;
+	alias i S5;
+	i = 0;
+	while(i < 255) do
+		if([SCRATCHPAD + i] != -1 && [SCRATCHPAD + i] != "") then
+			DBCount = DBCount + 1;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	i=0;
+	while (i<PTLR-1) do //PTLR - 1 coz we are not including the stack.
+		if(i<DBCount) then	
+			if([PTBR + i*2 + 1] != "01" || [PTBR + i*2 + 1] != "11") then
+				alias toAllocate S7;
+				toAllocate = 0;
+				while([MEM_LIST + toAllocate] == 1 && toAllocate<64) do
+					toAllocate = toAllocate + 1;
+				endwhile;
+				if(toAllocate == 64) then
+					[physicalSP - 2] = -1;
+					ireturn;
+				endif;
+				[MEM_LIST + toAllocate] = 1;
+				[PTBR + i*2] = toAllocate;
+				[PTBR + i*2 + 1] = "01";
+			endif;
+		endif;
+		if(i>=DBCount) then	
+			if([PTBR + i*2 + 1] == "01" || [PTBR + i*2 + 1] == "11") then
+				alias toDeallocate S7;
+				toDeallocate = [PTBR + i*2];
+				[MEM_LIST + toDeallocate] = 0;
+				[PTBR + i*2] = -1;
+				[PTBR + i*2 + 1] = "00";
+				[MEM_LIST + toDeallocate] = 0;
+			endif;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	i = 0;
+	while (i<DBCount) do
+		load([PTBR + i*2], [SCRATCHPAD + i]);
+		
+		i = i+1;
+	endwhile;
+	
+	alias fileDiscriptor S8; //Close any open files.
+	fileDiscriptor = 0;
+	while (fileDiscriptor < 8) do
+		alias PCB S9;
+		PCB = READY_LIST + (PTBR - 1024)/8*32;
+		alias sysWideFOTindex S4;
+		sysWideFOTindex = [PCB + 15 + fileDiscriptor*2];
+		if (sysWideFOTindex != -1) then
+			[1344 + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] - 1344;
+			if ([1344 + sysWideFOTindex*2 + 1] == 0) then
+				[1344 + sysWideFOTindex*2] = -1;
+			endif;
+	
+			[PCB + 15 + fileDiscriptor*2] = -1;
+		endif;
+		fileDiscriptor = fileDiscriptor + 1;
+	endwhile;
+	
+	SP = 3*512;
+	
+breakpoint;
+	physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+	[physicalSP] = 0;
+	ireturn;
+endif;

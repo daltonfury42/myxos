@@ -23,7 +23,6 @@ physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 alias PCBi S2;
 PCBi = currentPCB + 32;
 while (1==1) do
-	breakpoint;
 	if(PCBi > READY_LIST + 	32*31) then
 		PCBi = READY_LIST;
 	endif;

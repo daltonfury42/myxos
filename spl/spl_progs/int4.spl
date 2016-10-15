@@ -43,7 +43,7 @@ if ( sysCallNo == 5) then
 				[6*512 + DB] = 1;
 				[1*512 + LSEEKPos/512] = DB;
 				store(1,BB);
-				[5*512 + FATi*8 + 1] = [5*512 + FATi*8 + 1] + 1;
+				[5*512 + FATi*8 + 1] = [5*512 + FATi*8 + 1] + 512;
 				store(5,19);
 				store(6,20);
 				break;
