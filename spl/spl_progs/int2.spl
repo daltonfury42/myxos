@@ -1,5 +1,4 @@
 alias physicalSP S0;
-breakpoint;
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 
 // Get system call no. from the stack and put it in a register
@@ -71,7 +70,6 @@ if ( sysCallNo == 2) then
 endif;
 
 if (sysCallNo == 3) then
-	breakpoint;
 	alias fileDiscriptor S2;
 	fileDiscriptor = [physicalSP - 3];
 	if (fileDiscriptor > 7 || fileDiscriptor < 0) then 

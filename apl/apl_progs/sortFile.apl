@@ -14,8 +14,10 @@ integer sort()
 	integer buf;
 	integer n;
 	n = 0;
-	while (Read(fd, buf) == 0) do
-		if(buf == 0) then
+	while (Read(fd, buf) == '\0') do
+		print(".");
+		print(buf);
+		if(buf == -1) then
 			break;
 		endif;
 		n = n + 1;
