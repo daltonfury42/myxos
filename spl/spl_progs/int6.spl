@@ -48,6 +48,7 @@ if ( sysCallNo == 9) then
 				endwhile;
 				if(toAllocate == 64) then
 					[physicalSP - 2] = -1;
+					print("h1");
 					ireturn;
 				endif;
 				[MEM_LIST + toAllocate] = 1;

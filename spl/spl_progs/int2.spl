@@ -20,8 +20,8 @@ if ( sysCallNo == 2) then
 		endif;
 		fatIndex = fatIndex + 1;
 	endwhile;
-	if (fatIndex * 8 > 512) then
-		[physicalSP - 2] = -11;
+	if (fatIndex * 8 >= 512) then
+		[physicalSP - 2] = -1;
 		ireturn;
 	endif;
 
