@@ -83,7 +83,7 @@ if ( sysCallNo == 9) then
 		alias sysWideFOTindex S4;
 		sysWideFOTindex = [PCB + 15 + fileDiscriptor*2];
 		if (sysWideFOTindex != -1) then
-			[1344 + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] - 1344;
+			[1344 + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] - 1;
 			if ([1344 + sysWideFOTindex*2 + 1] == 0) then
 				[1344 + sysWideFOTindex*2] = -1;
 			endif;
@@ -95,8 +95,21 @@ if ( sysCallNo == 9) then
 	
 	SP = 3*512;
 	
-breakpoint;
 	physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 	[physicalSP] = 0;
+	ireturn;
+endif;
+if (sysCallNo == 11) then
+	//Implementation of Getpid
+	alias PID S0;
+	PID = (PTBR - 1024)/8;
+	[physicalSP - 2] = PID;
+	ireturn;
+endif;
+if (sysCallNo == 11) then
+	//Implementation of Getppid
+	alias PID S0;
+	PID = (PTBR - 1024)/8;
+	[physicalSP - 2] = [READY_LIST + PID*32 + 31];
 	ireturn;
 endif;

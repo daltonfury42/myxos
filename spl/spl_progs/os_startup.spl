@@ -38,7 +38,7 @@ PTLR = 4;		// 3 code pages + 1 stack
 [READY_LIST + 4] = 0;
 [READY_LIST + 5] = PTBR;
 [READY_LIST + 6] = PTLR;
-
+[READY_LIST + 31] = 0;
 alias i S0;
 i=15;
 while (i<31) do

@@ -1,1 +1,163 @@
-print("Bye!!");
+alias sysCallNo S1;
+alias physicalSP S6;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+sysCallNo = [physicalSP - 1];
+
+if(sysCallNo == 10) then
+	alias i S0;
+	i = 0;
+	breakpoint;
+	while (i<32) do
+		if([READY_LIST + i*32 + 1] == 1) then
+			break;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	if(i == 32) then
+		halt;
+	endif;
+
+	i = 0;
+	while (i<32) do
+		if([READY_LIST + i*32 + 1] == 2) then
+			break;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	alias PCB S3;
+	PCB = i;
+	alias fileDiscriptor S2; //Close any open files.
+	fileDiscriptor = 0;
+	while (fileDiscriptor < 8) do
+		alias sysWideFOTindex S4;
+		sysWideFOTindex = [PCB + 15 + fileDiscriptor*2];
+		if (sysWideFOTindex != -1) then
+			[1344 + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] - 1;
+			if ([1344 + sysWideFOTindex*2 + 1] == 0) then
+				[1344 + sysWideFOTindex*2] = -1;
+			endif;
+
+			[PCB + 15 + fileDiscriptor*2] = -1;
+		endif;
+		fileDiscriptor = fileDiscriptor + 1;
+	endwhile;
+			
+	[PCB + 1] = 0;
+
+	i = 0;
+	while(i < PTLR) do
+		if([PTBR + i*2] != -1) then
+			[MEM_LIST + [PTBR + i*2]] = 0;
+			[PTBR + i*2] = -1;
+			[PTBR + i*2 + 1] = "00";
+		endif;
+		i = i + 1;
+	endwhile;
+	//Resume any processes waiting for this process
+	i = 0;
+	while(i<32) do
+		if ([READY_LIST + i*32 + 1] == 100 + [PCB]) then
+			[READY_LIST + i*32 + 1] = 1;
+		endif;
+		i = i + 1;
+	endwhile;
+
+	//Find next process to runs
+	alias deadPCB S5;
+	deadPCB = PCB;
+	PCB = PCB + 32;
+	while(PCB != deadPCB) do
+		if([PCB + 1] == 1) then
+			break;
+		endif;
+		if(PCB != READY_LIST + 32*31) then
+			PCB = PCB+32;
+		else
+			PCB = READY_LIST;
+		endif;
+	endwhile;
+
+	[PCB + 1] = 2;
+	BP = [PCB + 2];
+	SP = [PCB + 3];
+	PTBR = [PCB + 5];
+	PTLR = [PCB + 6];
+
+	R0 = [PCB + 7];
+	R1 = [PCB + 8];
+	R2 = [PCB + 9];
+	R3 = [PCB +10];
+	R4 = [PCB +11];
+	R5 = [PCB +12];
+	R6 = [PCB +13];
+	R7 = [PCB +14];
+
+	[physicalSP] = 0;
+	ireturn;
+endif;
+
+if (sysCallNo == 13) then 
+	//Implememntation of wait
+	alias WaitingPID S7;
+	WaitingPID = [physicalSP - 3];
+	if ([READY_LIST + WaitingPID*32 + 1] == 2 || [READY_LIST + WaitingPID*32 + 1] == 1) then 
+		[physicalSP -2] = -1;
+		ireturn;
+	endif;
+
+	alias currentPID S8;
+	currentPID = (PTBR - PAGE_TABLE)/8;
+
+	[READY_LIST + currentPID*32 + 1] = 100 + WaitingPID;
+	
+	//Find next process to runs
+	alias deadPCB S9;
+	deadPCB = READY_LIST + currentPID*32;
+	alias PCB S10;
+	PCB = deadPCB + 32;
+	while(PCB != deadPCB) do
+		if([PCB + 1] == 1) then
+			break;
+		endif;
+		if(PCB != READY_LIST + 32*31) then
+			PCB = PCB+32;
+		else
+			PCB = READY_LIST;
+		endif;
+	endwhile;
+
+	[PCB + 1] = 2;
+	BP = [PCB + 2];
+	SP = [PCB + 3];
+	PTBR = [PCB + 5];
+	PTLR = [PCB + 6];
+
+	R0 = [PCB + 7];
+	R1 = [PCB + 8];
+	R2 = [PCB + 9];
+	R3 = [PCB +10];
+	R4 = [PCB +11];
+	R5 = [PCB +12];
+	R6 = [PCB +13];
+	R7 = [PCB +14];
+
+	[physicalSP] = 0;
+	ireturn;
+endif;
+
+if (sysCallNo == 14) then 
+	alias i S0;
+	alias PID S1;
+	PID = (PTBR - PAGE_TABLE)/8;
+	i = 0;
+	while(i<32) do
+		if ([READY_LIST + i*32 + 1] == 100 + PID) then
+			[READY_LIST + i*32 + 1] = 1;
+		endif;
+		i = i + 1;
+	endwhile;
+	[physicalSP - 2] = 0;
+	ireturn;
+endif;
