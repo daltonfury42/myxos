@@ -104,6 +104,8 @@ if ( sysCallNo == 8) then
 					endwhile;
 					[newPTBR + counter*2] = counter2;
 					[MEM_LIST + counter2] = 1;
+					print("$$");
+					print(counter2);
 					break;
 				endif;
 				counter2 = counter2 + 1;

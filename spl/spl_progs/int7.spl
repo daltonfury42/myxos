@@ -11,7 +11,7 @@ if(sysCallNo == 10) then
 	//Resume any processes waiting for this process
 	i = 0;
 	while(i<32) do
-		if ([READY_LIST + i*32 + 1] == 100 + [PCB]) then
+		if ([READY_LIST + i*32 + 1] == 100 + (PTBR - 1024)/8) then
 			[READY_LIST + i*32 + 1] = 1;
 		endif;
 		i = i + 1;
@@ -54,7 +54,7 @@ if(sysCallNo == 10) then
 	endwhile;
 			
 	[READY_LIST + PCB*32 + 1] = 0;
-
+	breakpoint;
 	i = 0;
 	while(i < PTLR) do
 		if([PTBR + i*2] != -1) then
@@ -64,7 +64,7 @@ if(sysCallNo == 10) then
 		endif;
 		i = i + 1;
 	endwhile;
-
+	breakpoint;
 	//Find next process to runs
 	deadPCB = READY_LIST + PCB*32;
 	PCB = READY_LIST + PCB*32 + 32;
@@ -78,7 +78,7 @@ if (sysCallNo == 13) then
 		[physicalSP -2] = -1;
 		ireturn;
 	endif;
-
+	[physicalSP - 2] = 0;
 	alias currentPID S8;
 	currentPID = (PTBR - PAGE_TABLE)/8;
 
@@ -100,6 +100,7 @@ if (sysCallNo == 13) then
 	//Find next process to runs
 	deadPCB = READY_LIST + currentPID*32;
 	PCB = deadPCB + 32;
+	[physicalSP - 2] = 0;
 endif;
 
 if (sysCallNo == 13 || sysCallNo == 10) then 
@@ -129,7 +130,6 @@ if (sysCallNo == 13 || sysCallNo == 10) then
 	R6 = [PCB +13];
 	R7 = [PCB +14];
 
-	breakpoint;
 	SP = SP + 1;
 	physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 	[physicalSP] = [PCB + 4];

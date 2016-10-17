@@ -36,11 +36,12 @@ if ( sysCallNo == 9) then
 		endif;
 		i = i + 1;
 	endwhile;
-
+	print("DBC");
+	breakpoint;
 	i=0;
 	while (i<PTLR-1) do //PTLR - 1 coz we are not including the stack.
 		if(i<DBCount) then	
-			if([PTBR + i*2 + 1] != "01" || [PTBR + i*2 + 1] != "11") then
+			if([PTBR + i*2 + 1] != "01" && [PTBR + i*2 + 1] != "11") then
 				alias toAllocate S7;
 				toAllocate = 0;
 				while([MEM_LIST + toAllocate] == 1 && toAllocate<64) do
@@ -52,6 +53,8 @@ if ( sysCallNo == 9) then
 					ireturn;
 				endif;
 				[MEM_LIST + toAllocate] = 1;
+				print("##");
+				print(toAllocate);
 				[PTBR + i*2] = toAllocate;
 				[PTBR + i*2 + 1] = "01";
 			endif;

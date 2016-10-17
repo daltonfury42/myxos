@@ -1,0 +1,27 @@
+alias VPagenum S0;
+alias Ip_addr S1;
+
+VPagenum = (EFR / 10) % 100;
+Ip_addr = (EFR/1000);
+
+alias i S2;
+while (i<64) do
+	if([MEM_LIST + i] == 0) then
+		break;
+	endif;
+	i = i + 1;
+endwhile;
+
+if(i == 64) then
+	print("MEM_FULL");
+	halt;
+endif;
+[PTBR + VPagenum*2] = i;
+[PTBR + VPagenum*2 + 1] = "01";
+load(1, [FAT + 44]);
+load(i,[SCRATCHPAD + VPagenum]);
+SP = SP + 1;
+alias physicalSP S3;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+[physicalSP] = Ip_addr;
+ireturn;
