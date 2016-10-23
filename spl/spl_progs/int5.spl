@@ -59,9 +59,55 @@ if ( sysCallNo == 8) then
 		counter = counter + 1;
 	endwhile;
 	if (counter == 64) then
-		print("OOM");
-		[physicalSP - 2] = -1;
-		ireturn;
+	alias pTableEntry S7;
+	pTableEntry = PAGE_TABLE - 2;
+	while (1 == 1) do
+		pTableEntry = pTableEntry + 2;
+		//make it look circular
+		if (pTableEntry == 1280) then
+			pTableEntry = PAGE_TABLE - 2;
+			continue;
+		endif;
+		//ignore stack
+		if ((pTableEntry - (PAGE_TABLE + 6)) % 8 == 0) then 
+			continue;
+		endif;
+
+		if ([pTableEntry + 1] == "11") then 
+			[pTableEntry + 1] = "01";
+			continue;
+		endif;
+
+		if ([pTableEntry + 1] == "00") then
+			continue;
+		endif;
+		//You can't swap out this page if it is referened by some other process
+		if ([MEM_LIST + [pTableEntry]] != 1) then      //What will happen if all pages are referenced by atleast one process?
+			print ("Ah!");
+			continue;
+		endif;
+		// [pTableEntry + 1] == "01" // Swap out victim page idetified!
+		break;
+	endwhile;
+		// Scan for a free block in swap
+		alias freeSwapBlock S8;
+		freeSwapBlock = 448;
+		while (freeSwapBlock < 512) do
+			if ([DISK_LIST + freeSwapBlock] == 0) then
+				[DISK_LIST + freeSwapBlock] = 1;
+				break;
+			endif;
+			freeSwapBlock = freeSwapBlock + 1;
+		endwhile;
+		if (freeSwapBlock == 512) then
+			breakpoint;
+			print("Swap Full");
+			halt;
+		endif;
+		store([pTableEntry], freeSwapBlock);
+		counter = [pTableEntry];
+		[pTableEntry] = freeSwapBlock;
+		[pTableEntry + 1] = "00";		
 	endif;
 
 	//Use the free page for stack

@@ -41,7 +41,7 @@ endwhile;
 // If there are no free pages, use the second chance algorithm to swap out pages
 if (freePage == 64) then
 	alias pTableEntry S6;
-	pTableEntry = PTBR; // Adjusted to 7 so that incremeting in while loop will work.
+	pTableEntry = PTBR + VPagenum*2;
 	while (1 == 1) do
 		pTableEntry = pTableEntry + 2;
 		//make it look circular
@@ -64,20 +64,24 @@ if (freePage == 64) then
 		endif;
 		//You can't swap out this page if it is referened by some other process
 		if ([MEM_LIST + [pTableEntry]] != 1) then      //What will happen if all pages are referenced by atleast one process?
+			print ("Ah!");
 			continue;
 		endif;
 		// [pTableEntry + 1] == "01" // Swap out victim page idetified!
+		break;
+	endwhile;
 		// Scan for a free block in swap
 		alias freeSwapBlock S7;
 		freeSwapBlock = 448;
 		while (freeSwapBlock < 512) do
-			if ([MEM_LIST + freeSwapBlock] == 0) then
-				[MEM_LIST + freeSwapBlock] = 1;
+			if ([DISK_LIST + freeSwapBlock] == 0) then
+				[DISK_LIST + freeSwapBlock] = 1;
 				break;
 			endif;
 			freeSwapBlock = freeSwapBlock + 1;
 		endwhile;
 		if (freeSwapBlock == 512) then
+			breakpoint;
 			print("Swap Full");
 			halt;
 		endif;
@@ -85,8 +89,7 @@ if (freePage == 64) then
 		freePage = [pTableEntry];
 		[pTableEntry] = freeSwapBlock;
 		[pTableEntry + 1] = "00";
-	endwhile;
-
+endif;
 	alias pageToLoad S8;
 	pageToLoad = [PTBR + VPagenum*2];
 	
@@ -102,6 +105,4 @@ if (freePage == 64) then
 	SP = SP + 1;
 	physicalSP = [PTBR + 2 * SP/512]*512 + SP%512;
 	[physicalSP] = Ip_addr;
-	breakpoint;
 	ireturn;
-endif;
