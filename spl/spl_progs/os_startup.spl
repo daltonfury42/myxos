@@ -8,27 +8,25 @@ load(19,13); load(20,14); 	//Load int5 to memory
 load(21,15); load(22,16); 	//Load int6 to memory
 load(23,17); load(24,18); 	//Load int7 to memory
 
-//Loading Init
-load(25,21);		// Load 1st page of code from disk to memory
-load(26,22);		// Load 2nd page of code from disk to memory
-load(27,23);		// Load 3rd page of code from disk to memory
+//Loading Init (Not done now, will be done by the demand paging)
+//load(25,21);		// Load 1st page of code from disk to memory
+//load(26,22);		// Load 2nd page of code from disk to memory
+//load(27,23);		// Load 3rd page of code from disk to memory
 
 // Load Interrupt 1 Routine from disk to memory 
 
 // Load the timer interrupt
-
-
 PTBR = 1024;		// 1024 + PID * 8 
 PTLR = 4;		// 3 code pages + 1 stack
 
-[PTBR + 0] = 25;
-[PTBR + 1] = "01";
-[PTBR + 2] = 26;
-[PTBR + 3] = "01";
+[PTBR + 0] = 21;
+[PTBR + 1] = "00";
+[PTBR + 2] = 22;
+[PTBR + 3] = "00";
 
-[PTBR + 4] = 27;
-[PTBR + 5] = "01";
-[PTBR + 6] = 28;
+[PTBR + 4] = 23;
+[PTBR + 5] = "00";
+[PTBR + 6] = 25;
 [PTBR + 7] = "01";
 
 [READY_LIST + 0] = 0;
@@ -50,7 +48,7 @@ endwhile;
 
 SP = 3 * 512;		// Set stack pointer.
 
-[28 * 512] = 0; 	// This is the location where call will look for IP, set logical addr 0
+[25 * 512] = 0; 	// This is the location where call will look for IP, set logical addr 0
 
 //Stage 7
 load(5,19); 	//FAT
@@ -63,14 +61,13 @@ while ( counter <  128) do// 64 entries, each of size 2 words
 	[ FILE_TABLE + counter + 1] =  0;// Set File Open Count to 0
 	counter = counter + 2;// Move to next entry
 endwhile;
-
 //Initilize mem-free-list
 counter = 0;
 while(counter < 64) do
-	if(counter <= 28) then
+	if(counter <= 25) then
 		[1280 + counter] = 1;
 	endif;
-	if(counter > 28) then
+	if(counter > 25) then
 		[1280 + counter] = 0;
 	endif;
 	counter = counter + 1;
@@ -81,5 +78,14 @@ while(counter < 32) do
 	[READY_LIST + counter*32 + 1] = 0;
 	counter = counter + 1;
 endwhile;
+
+//Reset swap usage at boot so that swap space used at previous machine instance can be reclaimed.
+counter = 448;
+while (counter < 512) do
+	[DISK_LIST + counter] = 0;
+	counter = counter + 1;
+endwhile;
+
+store(DISK_LIST/512, 20); 
 
 ireturn;

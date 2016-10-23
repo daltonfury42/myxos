@@ -26,59 +26,27 @@ if ( sysCallNo == 9) then
 
 	load(1, [FAT + FATi*8 + 2]); 	//Load BB to scratchpad
 
-	alias DBCount S4;
-	DBCount = 0;
 	alias i S5;
+
+
+	//The page table is initialized with disk addresses
 	i = 0;
-	while(i < 255) do
-		if([SCRATCHPAD + i] != -1 && [SCRATCHPAD + i] != "") then
-			DBCount = DBCount + 1;
+	while(i < PTLR - 1) do
+		if ([PTBR + i*2 + 1] == "01" || [PTBR + i*2 + 1] == "11") then
+			[MEM_LIST + [PTBR + i*2]] = [MEM_LIST + [PTBR + i*2]] - 1; 
 		endif;
-		i = i + 1;
-	endwhile;
-	print("DBC");
-	breakpoint;
-	i=0;
-	while (i<PTLR-1) do //PTLR - 1 coz we are not including the stack.
-		if(i<DBCount) then	
-			if([PTBR + i*2 + 1] != "01" && [PTBR + i*2 + 1] != "11") then
-				alias toAllocate S7;
-				toAllocate = 0;
-				while([MEM_LIST + toAllocate] == 1 && toAllocate<64) do
-					toAllocate = toAllocate + 1;
-				endwhile;
-				if(toAllocate == 64) then
-					[physicalSP - 2] = -1;
-					print("h1");
-					ireturn;
-				endif;
-				[MEM_LIST + toAllocate] = 1;
-				print("##");
-				print(toAllocate);
-				[PTBR + i*2] = toAllocate;
-				[PTBR + i*2 + 1] = "01";
-			endif;
+		
+		if ([PTBR + i*2 + 1] == "00" && [PTBR + i*2] >= 448) then
+			[DISK_LIST + [PTBR + i*2]] = [DISK_LIST + [PTBR + i*2]] - 1;
 		endif;
-		if(i>=DBCount) then	
-			if([PTBR + i*2 + 1] == "01" || [PTBR + i*2 + 1] == "11") then
-				alias toDeallocate S7;
-				toDeallocate = [PTBR + i*2];
-				[MEM_LIST + toDeallocate] = 0;
-				[PTBR + i*2] = -1;
-				[PTBR + i*2 + 1] = "00";
-				[MEM_LIST + toDeallocate] = 0;
-			endif;
+		[PTBR + i*2] = [SCRATCHPAD + i*2];
+		if([SCRATCHPAD + i*2] == -1 || [SCRATCHPAD + i*2] == "") then
+			[PTBR + i*2] = -1;
 		endif;
+		[PTBR + i*2 + 1] = "00";
 		i = i + 1;
 	endwhile;
 
-	i = 0;
-	while (i<DBCount) do
-		load([PTBR + i*2], [SCRATCHPAD + i]);
-		
-		i = i+1;
-	endwhile;
-	
 	alias fileDiscriptor S8; //Close any open files.
 	fileDiscriptor = 0;
 	while (fileDiscriptor < 8) do
@@ -97,6 +65,7 @@ if ( sysCallNo == 9) then
 		fileDiscriptor = fileDiscriptor + 1;
 	endwhile;
 	
+	[PTBR + 7] = "01";
 	SP = 3*512;
 	
 	physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);

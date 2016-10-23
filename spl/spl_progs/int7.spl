@@ -16,6 +16,8 @@ if(sysCallNo == 10) then
 		endif;
 		i = i + 1;
 	endwhile;
+
+	//Find the next ready process
 	i = 0;
 	while (i<32) do
 		if([READY_LIST + i*32 + 1] == 1) then
@@ -24,10 +26,12 @@ if(sysCallNo == 10) then
 		i = i + 1;
 	endwhile;
 
+	//If there is no ready process, halt the machine.
 	if(i == 32) then
 		halt;
 	endif;
 
+	//Find PCB of current process
 	i = 0;
 	while (i<32) do
 		if([READY_LIST + i*32 + 1] == 2) then
@@ -37,6 +41,7 @@ if(sysCallNo == 10) then
 	endwhile;
 
 	PCB = i;
+
 	alias fileDiscriptor S2; //Close any open files.
 	fileDiscriptor = 0;
 	while (fileDiscriptor < 8) do
@@ -52,20 +57,27 @@ if(sysCallNo == 10) then
 		endif;
 		fileDiscriptor = fileDiscriptor + 1;
 	endwhile;
-			
+	
+	//Set process to terminated
 	[READY_LIST + PCB*32 + 1] = 0;
-	breakpoint;
+	
+	//Free memory, and invalidate the page table.
 	i = 0;
 	while(i < PTLR) do
 		if([PTBR + i*2] != -1) then
-			[MEM_LIST + [PTBR + i*2]] = 0;
+			if ([PTBR + i*2] < 448) then
+				[MEM_LIST + [PTBR + i*2]] = [MEM_LIST + [PTBR + i*2]] - 1;
+			else
+				[DISK_LIST + [PTBR + i*2]] = [DISK_LIST + [PTBR + i*2]] - 1;
+				store(DISK_LIST/512, 20);
+			endif;
 			[PTBR + i*2] = -1;
 			[PTBR + i*2 + 1] = "00";
 		endif;
 		i = i + 1;
 	endwhile;
-	breakpoint;
-	//Find next process to runs
+	
+	//Find next process to runs (to be continued in the common if below)
 	deadPCB = READY_LIST + PCB*32;
 	PCB = READY_LIST + PCB*32 + 32;
 endif;
