@@ -7,6 +7,7 @@ physicalSP = [PTBR + 2 * SP/512]*512 + SP%512;
 alias PID S4;
 PID = (PTBR - PAGE_TABLE)/8;
 
+
 Cause = EFR % 10;// Gets value of cause field (size 1 char)
 VPagenum = (EFR / 10) % 100;    // Gets value of BadVAddr 
 Ip_addr = (EFR/1000);//Gets value of IP at the point of exception
@@ -65,6 +66,7 @@ if (freePage == 64) then
 		//You can't swap out this page if it is referened by some other process
 		if ([MEM_LIST + [pTableEntry]] != 1) then      //What will happen if all pages are referenced by atleast one process?
 			print ("Ah!");
+			print([MEM_LIST + [pTableEntry]]);
 			continue;
 		endif;
 		// [pTableEntry + 1] == "01" // Swap out victim page idetified!
@@ -81,7 +83,6 @@ if (freePage == 64) then
 			freeSwapBlock = freeSwapBlock + 1;
 		endwhile;
 		if (freeSwapBlock == 512) then
-			breakpoint;
 			print("Swap Full");
 			halt;
 		endif;
