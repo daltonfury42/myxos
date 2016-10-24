@@ -1,5 +1,5 @@
 integer main()
-{ 	print("Here");
+{ //	print("Here");
 	integer childpid, retval;
 	childpid = Fork();
 	if(childpid == -2) then
