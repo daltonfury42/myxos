@@ -1,4 +1,3 @@
-
 alias currentPID S0;
 currentPID = (PTBR - 1024)/8;
 alias currentPCB S1;

@@ -20,7 +20,7 @@ if ( sysCallNo == 6) then
 		ireturn;
 	endif;
 	alias PCB S4;
-	PCB = (PTBR - 1024)/8;
+	PCB = (PTBR - 1024)/8*32 + READY_LIST;
 	alias sysWideFOTi S5;
 	alias LSEEKPos S6;
 	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
@@ -54,7 +54,7 @@ if ( sysCallNo == 7) then
 		ireturn;
 	endif;
 	alias PCB S4;
-	PCB = (PTBR - 1024)/8;
+	PCB = READY_LIST + (PTBR - 1024)/8*32;
 	alias sysWideFOTi S5;
 	alias LSEEKPos S6;
 	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
@@ -64,18 +64,18 @@ if ( sysCallNo == 7) then
 	endif;
 	LSEEKPos = [PCB + 15 + fileDescriptor*2 + 1];
 	alias FATi S7;
-	FATi = [1344 + sysWideFOTi*2];
+	FATi = [FILE_TABLE + sysWideFOTi*2];
 	alias fileSize S8;
-	fileSize = [5*512 + FATi*8 + 1];
+	fileSize = [FAT + FATi*8 + 1];
 	alias BB S9;
-	BB = [5*512 + FATi*8 + 2];
-	if(LSEEKPos > fileSize) then
+	BB = [FAT + FATi*8 + 2];
+	if(LSEEKPos >= fileSize) then
 		[physicalSP -2] = -1;
 		ireturn;
 	endif;
-	load(1, BB);
+	load(SCRATCHPAD/512, BB);
 	alias DB S10;
-	DB = [512 + LSEEKPos/512];
+	DB = [SCRATCHPAD + LSEEKPos/512];
 	load(1,DB);
 	[physicalSP - 3] = [512+ LSEEKPos%512];
 	[PCB + 15 + fileDescriptor*2 + 1] = LSEEKPos + 1;

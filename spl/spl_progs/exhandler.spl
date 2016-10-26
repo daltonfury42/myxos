@@ -13,8 +13,18 @@ VPagenum = (EFR / 10) % 100;    // Gets value of BadVAddr
 Ip_addr = (EFR/1000);//Gets value of IP at the point of exception
 
 if (Cause != 0) then
-	print("Exception:");
-	print(Cause);
+	if (Cause == 1) then
+		print("Igl Instruction");
+	endif;
+	if (Cause == 1) then
+		print("Igl mem access");
+	endif;
+	if (Cause == 1) then
+		print("Artmtc exception");
+	endif;
+	if (Cause == 1) then
+		print("Igl. operands");
+	endif;
 endif;
 
 if ([PTBR + 2*VPagenum] == -1) then
@@ -34,7 +44,7 @@ freePage = 0;
 //Search if there is a free page
 while (freePage < 64) do
 	if ([MEM_LIST + freePage] == 0) then
-		[MEM_LIST + freePage] = 1;
+		[MEM_LIST + freePage] = 11;
 		break;
 	endif;
 	freePage = freePage + 1;

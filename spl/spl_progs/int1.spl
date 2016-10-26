@@ -1,3 +1,4 @@
+print("INT1");
 alias physicalSP S0;
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 
@@ -12,20 +13,20 @@ if ( sysCallNo == 1) then
 // Implementation of Create 
 	alias fileName S2;
 	fileName = [physicalSP - 3];
-	alias i S3;
-	i = 0;
-	while (i < 512) do
-		if ([FAT + i] == fileName) then
+	alias FATi S3;
+	FATi = 0;
+	while (FATi < 64) do
+		if ([FAT + FATi*8] == fileName) then
 			[physicalSP - 2] = 0;
 			ireturn;
 		endif;
-		i = i + 8;
+		FATi = FATi + 1;
 	endwhile;
 	alias Bi S4;
 	Bi = 0;
 	while(Bi<448) do
-		if ([512*6 + Bi] == 0) then
-			[512*6 + Bi] = 1;
+		if ([DISK_LIST + Bi] == 0) then
+			[DISK_LIST + Bi] = 1;
 			break;
 		endif;
 		Bi = Bi + 1;
@@ -34,24 +35,25 @@ if ( sysCallNo == 1) then
 		[physicalSP - 2] = -1; 
 		ireturn;
 	endif;
-	i = 0;
-	while (i < 512) do
-		if([FAT + i + 2] == -1) then
-			[FAT + i] = fileName;
-			[FAT + i + 1] = 0;
-			[FAT + i + 2] = Bi;
+	FATi = 0;
+	while (FATi < 64) do
+		if([FAT + FATi*8 + 2] == -1) then
+			[FAT + FATi*8] = fileName;
+			[FAT + FATi*8 + 1] = 0;
+			[FAT + FATi*8 + 2] = Bi;
 			break;
 		endif;
-		i = i + 8;
+		FATi = FATi + 1;
 	endwhile;
-	if (i==512) then 
+	if (FATi==64) then 
 		[physicalSP - 2] = -1; 
 		ireturn;
 	endif;
 	load(1,Bi);
+	alias i S8;
 	i = 0;
 	while(i<512) do
-		[512 + i] = -1;
+		[SCRATCHPAD + i] = -1;
 		i = i + 1;
 	endwhile;
 	store(1,Bi);
@@ -67,20 +69,20 @@ if ( sysCallNo == 4) then
 	fileName = [physicalSP - 3];
 	alias fatIndex S3;
 	fatIndex = 0;
-	while (fatIndex*8 < 512) do
+	while (fatIndex < 64) do
 		if ([FAT + fatIndex*8] == fileName) then
 			break;
 		endif;
 		fatIndex = fatIndex + 1;
 	endwhile;
-	if (fatIndex*8 >= 512) then
+	if (fatIndex >= 64) then
 		[physicalSP -2] = -1;
 		ireturn;
 	endif;
 	alias sysFOTi S4;
 	sysFOTi = 0;
-	while (sysFOTi*2 + 1344 < 1471) do
-		if([sysFOTi*2 + 1344] == fatIndex) then
+	while (sysFOTi*2 + FILE_TABLE < 1471) do
+		if([sysFOTi*2 + FILE_TABLE] == fatIndex) then
 			print("File already opened");
 			[physicalSP -2] = -1;
 			ireturn;
@@ -115,9 +117,15 @@ if ( sysCallNo == 4) then
 		[1*512 + j] = "";
 		j = j + 1;
 	endwhile;
-	[6*512 + BB] = 0;
-	[5*512 + fatIndex*8] = -1;
-	[5*512 + fatIndex*8 + 2] = -1;
+	//Free the BB
+	[DISK_LIST + BB] = 0;
+
+	//Invalidate FAT entry
+	[FAT + fatIndex*8] = -1;
+	[FAT + fatIndex*8 + 1] = 0;
+	[FAT + fatIndex*8 + 2] = -1;
+
+	//Commit DFL and FAT Table to disk
 	store(5,19);
 	store(6,20);
 	[physicalSP - 2] = 0;

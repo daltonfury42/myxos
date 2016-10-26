@@ -1,4 +1,5 @@
 alias physicalSP S0;
+print("int2");
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 
 // Get system call no. from the stack and put it in a register
@@ -14,36 +15,37 @@ if ( sysCallNo == 2) then
 	fileName = [physicalSP - 3];
 	alias fatIndex S3;
 	fatIndex = 0;
-	while (fatIndex*8 < 512) do
+	while (fatIndex < 64) do
 		if ([FAT + fatIndex*8] == fileName) then
 			break;
 		endif;
 		fatIndex = fatIndex + 1;
 	endwhile;
-	if (fatIndex * 8 >= 512) then
+	if (fatIndex >= 64) then
+		print("FileNotFound");
 		[physicalSP - 2] = -1;
 		ireturn;
 	endif;
 
 	alias sysWideFOTindex S4;
 	sysWideFOTindex = 0;
-	while(sysWideFOTindex*2 + 1344 < 1471) do
-		if ([1344 + sysWideFOTindex*2] == fatIndex) then
+	while(sysWideFOTindex*2 + FILE_TABLE < 1471) do
+		if ([FILE_TABLE + sysWideFOTindex*2] == fatIndex) then
 			break;
 		endif;
 		sysWideFOTindex = sysWideFOTindex + 1;
 	endwhile;
-	if (sysWideFOTindex*2 + 1344 >= 1471) then
+	if (sysWideFOTindex*2 + FILE_TABLE >= 1471) then
 		sysWideFOTindex = 0;
-		while(sysWideFOTindex*2 + 1344 < 1471) do
-			if ([1344 + sysWideFOTindex*2] == -1) then
-				[1344 + sysWideFOTindex*2 + 1] = 0; 	
+		while(sysWideFOTindex*2 + FILE_TABLE < 1471) do
+			if ([FILE_TABLE + sysWideFOTindex*2] == -1) then
+				[FILE_TABLE + sysWideFOTindex*2 + 1] = 0; 	
 				break;
 			endif;
 			sysWideFOTindex = sysWideFOTindex + 1;
 		endwhile;
-		if (sysWideFOTindex*2 + 1344 >= 1471) then
-			[physicalSP - 2] = -12;
+		if (sysWideFOTindex*2 + FILE_TABLE >= 1471) then
+			[physicalSP - 2] = -1;
 			ireturn;
 		endif;
 	endif;
@@ -51,10 +53,10 @@ if ( sysCallNo == 2) then
 	PID = (PTBR - 1024) / 8;
 	alias fileDiscriptor S6;
 	fileDiscriptor = 0;
-	while (fileDiscriptor*2 + 15 < 30) do
-		if([READY_LIST + PID*32 + 15 + fileDiscriptor] == -1) then
-			[READY_LIST + PID*32 + 15 + fileDiscriptor] = sysWideFOTindex;
-			[READY_LIST + PID*32 + 15 + fileDiscriptor + 1] = 0;
+	while (fileDiscriptor < 8) do
+		if([READY_LIST + PID*32 + 15 + fileDiscriptor*2] == -1) then
+			[READY_LIST + PID*32 + 15 + fileDiscriptor*2] = sysWideFOTindex;
+			[READY_LIST + PID*32 + 15 + fileDiscriptor*2 + 1] = 0;
 			break;  	
 		endif;
 		fileDiscriptor = fileDiscriptor + 1;
@@ -63,8 +65,8 @@ if ( sysCallNo == 2) then
 		[physicalSP - 2] = -1;
 		ireturn;
 	endif;
-	[1344 + sysWideFOTindex*2] = fatIndex;
-	[1344 + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] + 1; 
+	[FILE_TABLE + sysWideFOTindex*2] = fatIndex;
+	[FILE_TABLE + sysWideFOTindex*2 + 1] = [1344 + sysWideFOTindex*2 + 1] + 1; 
 	[physicalSP - 2] = fileDiscriptor;
 	ireturn;
 endif;

@@ -20,11 +20,12 @@ if ( sysCallNo == 5) then
 		ireturn;
 	endif;
 	alias PCB S4;
-	PCB = (PTBR - 1024)/8;
+	PCB = (PTBR - 1024)/8*32 + READY_LIST;
 	alias sysWideFOTi S5;
 	alias LSEEKPos S6;
 	sysWideFOTi = [PCB + 15 + fileDescriptor*2];
 	if(sysWideFOTi == -1) then 
+		print("Invalid SyFOT");
 		[physicalSP - 2] = -1;
 		ireturn;
 	endif;
