@@ -40,8 +40,8 @@ if ( sysCallNo == 9) then
 		if ([PTBR + i*2 + 1] == "00" && [PTBR + i*2] >= 448) then
 			[DISK_LIST + [PTBR + i*2]] = [DISK_LIST + [PTBR + i*2]] - 1;
 		endif;
-		[PTBR + i*2] = [SCRATCHPAD + i*2];
-		if([SCRATCHPAD + i*2] == -1 || [SCRATCHPAD + i*2] == "") then
+		[PTBR + i*2] = [SCRATCHPAD + i];
+		if([SCRATCHPAD + i] == -1 || [SCRATCHPAD + i] == "") then
 			[PTBR + i*2] = -1;
 		endif;
 		[PTBR + i*2 + 1] = "00";

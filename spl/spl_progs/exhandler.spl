@@ -29,6 +29,7 @@ endif;
 
 if ([PTBR + 2*VPagenum] == -1) then
 	print("Invalid mem ref");
+	breakpoint;
 endif;
 
 if ([PTBR + 2*VPagenum] == -1 || Cause != 0) then
