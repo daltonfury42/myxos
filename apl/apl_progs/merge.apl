@@ -31,15 +31,15 @@ integer mergesort(integer fd1,fd2,fd3)
         endwhile;
         if (ret1 == -1) then
             while ret2!= -1 do
-              ret2 = Read(fd2,y);
               ret = Write(fd3,y);
+              ret2 = Read(fd2,y);
            endwhile;
         endif;
  
         if (ret2 == -1) then
            while ret1 != -1 do
-               ret1 = Read(fd1,x);
                ret = Write(fd3,x);
+               ret1 = Read(fd1,x);
            endwhile;
         endif;
   return 0;

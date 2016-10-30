@@ -1,3 +1,4 @@
+print("ExHdlr");
 alias Cause S0;
 alias VPagenum S1;
 alias Ip_addr S2;
@@ -29,7 +30,6 @@ endif;
 
 if ([PTBR + 2*VPagenum] == -1) then
 	print("Invalid mem ref");
-	breakpoint;
 endif;
 
 if ([PTBR + 2*VPagenum] == -1 || Cause != 0) then
@@ -45,7 +45,7 @@ freePage = 0;
 //Search if there is a free page
 while (freePage < 64) do
 	if ([MEM_LIST + freePage] == 0) then
-		[MEM_LIST + freePage] = 11;
+		[MEM_LIST + freePage] = 1;
 		break;
 	endif;
 	freePage = freePage + 1;
@@ -55,6 +55,9 @@ if (freePage == 64) then
 	alias pTableEntry S6;
 	pTableEntry = PTBR + VPagenum*2;
 	while (1 == 1) do
+//		if (PTBR == 1176) then
+//			breakpoint;
+//		endif;
 		pTableEntry = pTableEntry + 2;
 		//make it look circular
 		if (pTableEntry == 1280) then
@@ -71,7 +74,7 @@ if (freePage == 64) then
 			continue;
 		endif;
 
-		if ([pTableEntry + 1] == "00") then
+		if ([pTableEntry + 1] == "00" || [pTableEntry + 1] == "") then
 			continue;
 		endif;
 		//You can't swap out this page if it is referened by some other process
@@ -115,4 +118,5 @@ endif;
 	SP = SP + 1;
 	physicalSP = [PTBR + 2 * SP/512]*512 + SP%512;
 	[physicalSP] = Ip_addr;
+	print("ExhdlrEnd");
 	ireturn;

@@ -65,10 +65,10 @@ endwhile;
 counter = 0;
 while(counter < 64) do
 	if(counter <= 25) then
-		[1280 + counter] = 1;
+		[MEM_LIST + counter] = 1;
 	endif;
 	if(counter > 25) then
-		[1280 + counter] = 0;
+		[MEM_LIST + counter] = 0;
 	endif;
 	counter = counter + 1;
 endwhile;

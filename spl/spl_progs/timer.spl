@@ -1,3 +1,4 @@
+print("TI");
 alias currentPID S0;
 currentPID = (PTBR - 1024)/8;
 alias currentPCB S1;
@@ -56,5 +57,6 @@ newphysicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 [ newphysicalSP ] = [ PCBi + 4 ]; // Stores IP field value of PCB on the stack 
 
 [PCBi + 1] = 2; //Running
+print("TIEnd");
 ireturn;
 

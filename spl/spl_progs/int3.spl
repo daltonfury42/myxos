@@ -1,4 +1,5 @@
 alias physicalSP S0;
+print("INT3");
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 
 // Get system call no. from the stack and put it in a register
